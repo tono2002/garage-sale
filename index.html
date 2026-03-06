@@ -195,11 +195,16 @@ button:active:not(.cat-pill):not(.panel-close) { transform: scale(0.96) !importa
   padding:4px 10px;
   font-family:'Barlow Condensed',sans-serif; font-size:0.82rem; font-weight:600;
   letter-spacing:0.5px; text-transform:uppercase;
-  color:var(--muted); cursor:pointer; white-space:nowrap;
-  transition: color 0.15s, border-color 0.15s, background 0.15s;
+  color:var(--muted); cursor:pointer; white-space:nowrap; flex-shrink:0;
+  /* only transition safe non-layout properties — prevents siblings from shifting */
+  transition: color 0.15s, background-color 0.15s, box-shadow 0.15s !important;
+  transform: none !important;
+  /* always occupy the border space so active state never shifts others */
+  box-shadow: inset 0 0 0 1px transparent;
 }
-.cat-pill:hover { color:var(--cream); border-color:var(--shelf-edge); background:var(--shelf); }
-.cat-pill.active { color:var(--amber-dim); border-color:rgba(245,158,11,0.4); background:rgba(245,158,11,0.08); }
+.cat-pill:hover  { color:var(--cream); background:var(--shelf); box-shadow: inset 0 0 0 1px var(--shelf-edge); }
+.cat-pill.active { color:var(--amber-dim); background:rgba(245,158,11,0.08); box-shadow: inset 0 0 0 1.5px rgba(245,158,11,0.5); }
+.cat-pill:active { transform: none !important; }
 
 /* ══════════════════════════════════
    PAGE: LANDING
@@ -731,6 +736,81 @@ button:active:not(.cat-pill):not(.panel-close) { transform: scale(0.96) !importa
 .toast.show { transform:translateX(-50%) translateY(0); }
 
 /* ══════════════════════════════════
+   PAYMENT MODAL
+══════════════════════════════════ */
+.pay-panel { max-width:420px; }
+.pay-hdr {
+  padding:20px 24px 16px; border-bottom:1px solid var(--shelf-edge);
+  display:flex; align-items:center; justify-content:space-between;
+}
+.pay-hdr h2 { font-family:'Barlow Condensed',sans-serif; font-weight:800; font-size:1.1rem; text-transform:uppercase; letter-spacing:1px; color:var(--cream); }
+.pay-body { padding:20px 24px 24px; }
+.pay-summary {
+  background:var(--bg2); border:1px solid var(--shelf-edge); border-radius:8px;
+  padding:14px 16px; margin-bottom:20px;
+  display:flex; align-items:center; gap:14px;
+}
+.pay-sum-emoji { font-size:2rem; }
+.pay-sum-name { font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:1rem; color:var(--cream); }
+.pay-sum-price { font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:1.5rem; color:var(--amber-dim); margin-top:1px; }
+.pay-section-label {
+  font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:0.72rem;
+  text-transform:uppercase; letter-spacing:1.5px; color:var(--muted);
+  margin-bottom:10px; margin-top:18px;
+}
+.pay-card-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.pay-input-wrap { position:relative; }
+.pay-input-wrap .pay-ic {
+  position:absolute; left:10px; top:50%; transform:translateY(-50%);
+  font-size:0.9rem; pointer-events:none;
+}
+.pay-input {
+  width:100%; background:var(--bg2); border:1.5px solid var(--shelf-edge);
+  border-radius:7px; padding:10px 12px; color:var(--cream);
+  font-family:'DM Mono',monospace; font-size:0.88rem; outline:none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.pay-input.has-ic { padding-left:32px; }
+.pay-input:focus { border-color:var(--amber); box-shadow:0 0 0 3px rgba(245,158,11,0.12); }
+.pay-input::placeholder { color:var(--muted); font-family:'DM Mono',monospace; }
+.pay-cards { display:flex; gap:6px; margin-bottom:14px; }
+.pay-card-badge {
+  padding:3px 8px; border-radius:4px; border:1px solid var(--shelf-edge);
+  font-family:'DM Mono',monospace; font-size:0.66rem; color:var(--muted);
+  background:var(--shelf);
+}
+.btn-pay {
+  width:100%; background:var(--amber); color:#fff; border:none; border-radius:8px;
+  padding:14px; font-family:'Barlow Condensed',sans-serif; font-weight:800;
+  font-size:1rem; text-transform:uppercase; letter-spacing:1px;
+  cursor:pointer; margin-top:20px;
+  transition: background 0.18s, transform 0.18s, box-shadow 0.18s;
+  display:flex; align-items:center; justify-content:center; gap:8px;
+}
+.btn-pay:hover { background:var(--amber-dim); transform:translateY(-1px); box-shadow:0 4px 14px rgba(245,158,11,0.35); }
+.btn-pay:disabled { background:var(--shelf-top); color:var(--muted); cursor:not-allowed; transform:none; box-shadow:none; }
+/* success state */
+.pay-success {
+  padding:44px 24px; text-align:center;
+  display:none; flex-direction:column; align-items:center; gap:12px;
+}
+.pay-success.show { display:flex; animation:fadeUp 0.4s ease; }
+.pay-success-icon { font-size:3.5rem; }
+.pay-success h3 {
+  font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:1.6rem;
+  text-transform:uppercase; color:var(--cream);
+}
+.pay-success p { font-size:0.88rem; color:var(--cream-dim); line-height:1.6; max-width:280px; }
+.pay-success .btn-post { width:auto; padding:10px 28px; margin-top:8px; }
+/* processing spinner */
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinner {
+  width:16px; height:16px; border:2px solid rgba(255,255,255,0.4);
+  border-top-color:#fff; border-radius:50%;
+  animation:spin 0.7s linear infinite; flex-shrink:0;
+}
+
+/* ══════════════════════════════════
    ANIMATIONS
 ══════════════════════════════════ */
 @keyframes fadeUp { from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)} }
@@ -947,6 +1027,7 @@ button:active:not(.cat-pill):not(.panel-close) { transform: scale(0.96) !importa
         </div>
         <div class="d-actions">
           <button class="btn-msg" onclick="alert('Messaging coming soon!')">Message Seller</button>
+          <button class="btn-msg" id="buyBtn" style="background:var(--green)" onclick="openPay()">Buy Now</button>
           <button class="btn-save-ic" id="saveBtn" onclick="toggleSave()">♡</button>
         </div>
       </div>
@@ -991,6 +1072,60 @@ button:active:not(.cat-pill):not(.panel-close) { transform: scale(0.96) !importa
         <div class="fg"><label>Your Name</label><input id="lName" placeholder="First name"></div>
         <button class="btn-post" onclick="postItem()">Post Item →</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PAYMENT OVERLAY ══ -->
+<div class="overlay" id="payOverlay">
+  <div class="panel pay-panel">
+    <div class="pay-hdr">
+      <h2>Checkout</h2>
+      <button class="panel-close" onclick="closePay()" style="position:static">✕</button>
+    </div>
+    <!-- form view -->
+    <div class="pay-body" id="payForm">
+      <div class="pay-summary">
+        <div class="pay-sum-emoji" id="payEmoji">🔧</div>
+        <div>
+          <div class="pay-sum-name" id="payName">Item</div>
+          <div class="pay-sum-price" id="payPrice">$0</div>
+        </div>
+      </div>
+
+      <div class="pay-cards">
+        <span class="pay-card-badge">VISA</span>
+        <span class="pay-card-badge">MC</span>
+        <span class="pay-card-badge">AMEX</span>
+        <span class="pay-card-badge">PAYPAL</span>
+      </div>
+
+      <div class="pay-section-label">Card Details</div>
+      <div class="pay-input-wrap" style="margin-bottom:10px">
+        <span class="pay-ic">💳</span>
+        <input class="pay-input has-ic" id="payCardNum" placeholder="1234  5678  9012  3456" maxlength="19" oninput="fmtCard(this)">
+      </div>
+      <div class="pay-card-row">
+        <input class="pay-input" id="payExp" placeholder="MM / YY" maxlength="7" oninput="fmtExp(this)">
+        <div class="pay-input-wrap">
+          <input class="pay-input" id="payCvv" placeholder="CVV" maxlength="4" type="password">
+        </div>
+      </div>
+
+      <div class="pay-section-label">Billing</div>
+      <input class="pay-input" id="payHolder" placeholder="Name on card" style="margin-bottom:10px;display:block;width:100%">
+      <input class="pay-input" id="payZip" placeholder="ZIP / Postal code" style="display:block;width:100%">
+
+      <button class="btn-pay" id="btnPay" onclick="submitPay()">
+        <span id="payBtnLabel">Pay Now</span>
+      </button>
+    </div>
+    <!-- success view -->
+    <div class="pay-success" id="paySuccess">
+      <div class="pay-success-icon">✅</div>
+      <h3>Payment Sent!</h3>
+      <p>Your payment is confirmed. The seller has been notified and will arrange pickup or drop-off.</p>
+      <button class="btn-post" onclick="closePay()">Done</button>
     </div>
   </div>
 </div>
@@ -1171,7 +1306,7 @@ const CAT_ORDER  = ['tools','electronics','sports','furniture','automotive','out
 const r = a => a[Math.floor(Math.random()*a.length)];
 const ri = (a,b) => Math.floor(Math.random()*(b-a+1))+a;
 
-let allItems=[], nextId=1, activeCat='all';
+let allItems=[], nextId=1, activeCat='all', currentPhotoUrl=null;
 
 Object.keys(ITEMS).forEach(cat=>{
   ITEMS[cat].forEach((it,i)=>{
@@ -1355,7 +1490,10 @@ function renderShelves(){
       const card=document.createElement('div');
       card.className='item-card'; card.style.animationDelay=(i*.03)+'s';
       card.onclick=()=>openDetail(it);
-      card.innerHTML=`<div class="card-img"><span>${it.emoji}</span><div class="card-tag">$${it.price}</div><div class="card-badge ${bc}">${it.condition}</div></div><div class="card-body"><div class="card-title" title="${it.title}">${it.title}</div><div class="card-seller">${it.seller}</div><div class="card-foot"><div class="card-price">$${it.price}</div><div class="card-loc">${it.loc}</div></div></div>`;
+      const imgInner = it.photoUrl
+        ? `<img src="${it.photoUrl}" style="width:100%;height:100%;object-fit:cover;display:block;">`
+        : `<span>${it.emoji}</span>`;
+      card.innerHTML=`<div class="card-img" style="${it.photoUrl?'background:none;':''}">${imgInner}<div class="card-tag">$${it.price}</div><div class="card-badge ${bc}">${it.condition}</div></div><div class="card-body"><div class="card-title" title="${it.title}">${it.title}</div><div class="card-seller">${it.seller}</div><div class="card-foot"><div class="card-price">$${it.price}</div><div class="card-loc">${it.loc}</div></div></div>`;
       inner.appendChild(card);
     });
     shelf.appendChild(inner); sec.appendChild(shelf);
@@ -1370,8 +1508,18 @@ function setCat(btn,cat){
 }
 function handleSearch(){ renderShelves(); }
 
+let currentItem=null;
 function openDetail(it){
-  document.getElementById('detailEmoji').textContent=it.emoji;
+  currentItem=it;
+  // hero image: real photo or emoji
+  const emojiEl=document.getElementById('detailEmoji');
+  if(it.photoUrl){
+    emojiEl.innerHTML=`<img src="${it.photoUrl}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;border-radius:0;">`;
+    emojiEl.style.fontSize='0';
+  } else {
+    emojiEl.textContent=it.emoji;
+    emojiEl.style.fontSize='';
+  }
   document.getElementById('dPrice').textContent='$'+it.price;
   document.getElementById('dName').textContent=it.title;
   document.getElementById('dDesc').textContent=it.desc;
@@ -1397,9 +1545,11 @@ function closeList(){ document.getElementById('listOverlay').classList.remove('o
 function handlePhotos(e){
   const f=Array.from(e.target.files).slice(0,5);
   const g=document.getElementById('photoGrid'); g.innerHTML='';
+  currentPhotoUrl=null;
   if(!f.length) return;
   const rd=new FileReader();
   rd.onload=ev=>{
+    currentPhotoUrl=ev.target.result;
     const img=document.createElement('img');
     img.src=ev.target.result;
     img.style.cssText='width:100%;aspect-ratio:1;object-fit:cover;border-radius:4px;border:1px solid var(--shelf-edge)';
@@ -1419,8 +1569,9 @@ function postItem(){
   if(!title||!name){showToast('Please add a title and name');return;}
   if(isNaN(price)){showToast('Please add a price');return;}
   allItems.unshift({id:nextId++,cat,title,desc:desc||'No description.',
-    emoji:CATS[cat].emojis[0],price,condition:cond,
+    emoji:CATS[cat].emojis[0],photoUrl:currentPhotoUrl,price,condition:cond,
     seller:name,sellerAv:'🧔',loc:loc||'Your area',ts:Date.now()});
+  currentPhotoUrl=null;
   closeList();
   activeCat='all';
   document.querySelectorAll('.cat-pill').forEach((b,i)=>b.classList.toggle('active',i===0));
@@ -1441,9 +1592,60 @@ function showToast(msg){
     if(e.target.id===id){ id==='detailOverlay'?closeDetail():closeList(); }
   });
 });
-document.addEventListener('keydown',e=>{ if(e.key==='Escape'){closeDetail();closeList();} });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'){closeDetail();closeList();closePay();} });
 
 renderShelves();
+
+/* ── PAYMENT ── */
+function openPay(){
+  if(!currentItem) return;
+  document.getElementById('payEmoji').textContent=currentItem.photoUrl?'':currentItem.emoji;
+  if(currentItem.photoUrl){
+    document.getElementById('payEmoji').innerHTML=`<img src="${currentItem.photoUrl}" style="width:44px;height:44px;object-fit:cover;border-radius:6px;">`;
+  }
+  document.getElementById('payName').textContent=currentItem.title;
+  document.getElementById('payPrice').textContent='$'+currentItem.price;
+  document.getElementById('btnPay').textContent='';
+  document.getElementById('btnPay').innerHTML='<span id="payBtnLabel">Pay $'+currentItem.price+'</span>';
+  document.getElementById('btnPay').disabled=false;
+  document.getElementById('payForm').style.display='';
+  document.getElementById('paySuccess').classList.remove('show');
+  // clear fields
+  ['payCardNum','payExp','payCvv','payHolder','payZip'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('payOverlay').classList.add('open');
+}
+function closePay(){
+  document.getElementById('payOverlay').classList.remove('open');
+}
+function fmtCard(el){
+  let v=el.value.replace(/\D/g,'').slice(0,16);
+  el.value=v.replace(/(.{4})/g,'$1  ').trim();
+}
+function fmtExp(el){
+  let v=el.value.replace(/\D/g,'').slice(0,4);
+  if(v.length>=3) v=v.slice(0,2)+' / '+v.slice(2);
+  el.value=v;
+}
+function submitPay(){
+  const num=document.getElementById('payCardNum').value.replace(/\s/g,'');
+  const exp=document.getElementById('payExp').value.replace(/\s/g,'');
+  const cvv=document.getElementById('payCvv').value.trim();
+  const name=document.getElementById('payHolder').value.trim();
+  if(num.length<15||exp.length<4||cvv.length<3||!name){
+    showToast('Please fill in all card details'); return;
+  }
+  const btn=document.getElementById('btnPay');
+  btn.innerHTML='<span class="spinner"></span><span>Processing…</span>';
+  btn.disabled=true;
+  setTimeout(()=>{
+    document.getElementById('payForm').style.display='none';
+    document.getElementById('paySuccess').classList.add('show');
+    showToast('Payment confirmed!');
+  },1800);
+}
+document.getElementById('payOverlay').addEventListener('click',e=>{
+  if(e.target.id==='payOverlay') closePay();
+});
 
 /* ── RIPPLE EFFECT ── */
 document.addEventListener('click', function(e) {
